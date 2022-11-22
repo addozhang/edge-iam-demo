@@ -106,7 +106,13 @@ kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items..metada
 
 ### Enable IAM feature
 
-Simulate enable feature by issue and enable relative plugins.
+Simulate enable feature by issue and enable relative plugins via repo REST API. So at first, we need to expose the repo with `port-forward`.
+
+```shell
+kubectl port-forward -n osm-system svc/osm-controller 6060:6060
+```
+
+Then, execute command below.
 
 ```shell
 ./init-base.sh
