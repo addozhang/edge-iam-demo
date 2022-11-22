@@ -1,0 +1,8 @@
+{
+  "services": {
+    "httpbin.httpbin.svc.cluster.local": {
+      "token": "2f1acc6c3a606b082e5eef5e54414ffb",
+      "paths": ["/get"]
+    }
+  }
+}

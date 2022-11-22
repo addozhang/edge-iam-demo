@@ -1,0 +1,4 @@
+{
+  "verifier" : "ext-auth.auth:8079",
+  "paths": ["/get"]
+}
