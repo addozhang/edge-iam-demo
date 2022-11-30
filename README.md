@@ -7,16 +7,31 @@ export INSTALL_K3S_VERSION=v1.23.8+k3s2
 curl -sfL https://get.k3s.io | sh -s - --disable traefik --write-kubeconfig-mode 644 --write-kubeconfig ~/.kube/config
 ```
 
+Install osm-edge CLI
+
+```shell
+system=$(uname -s | tr [:upper:] [:lower:])
+arch=$(dpkg --print-architecture)
+release=v1.2.1
+curl -L https://github.com/flomesh-io/osm-edge/releases/download/${release}/osm-edge-${release}-${system}-${arch}.tar.gz | tar -vxzf -
+./${system}-${arch}/osm version
+cp ./${system}-${arch}/osm /usr/local/bin/
+```
+
 Install osm-edge
 
 ```shell
+export osm_namespace=osm-system 
+export osm_mesh_name=osm 
+
 osm install \
 --mesh-name osm \
 --osm-namespace osm-system \
---set=osm.image.registry="cybwan" \
---set=osm.image.tag="1.2.1-newpjs" \
---set=osm.sidecarImage="flomesh/pipy-nightly:latest" \
---set=osm.pipyRepoImage="flomesh/pipy-repo-nightly:latest"
+--set=osm.image.pullPolicy=Always \
+--set=osm.sidecarLogLevel=error \
+--set=osm.controllerLogLevel=warn \
+--set=osm.enableEgress=false \
+--set=osm.enablePermissiveTrafficPolicy=true
 ```
 
 Deploy sample apps
@@ -99,9 +114,9 @@ EOF
 Now, you will get `200 OK` status if attempt access `httpbin` from `curl`.
 
 ```shell
-kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items..metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/get
+kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items[0].metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/get
 
-kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items..metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/get
+kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items[0].metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/headers
 ```
 
 ### Enable IAM feature
@@ -139,6 +154,9 @@ The request to `/headers` returns `200`, because `http` restricts the access of 
 
 ```shell
 kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items..metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/headers
+```
+
+```
 HTTP/1.1 200 OK
 server: pipy
 date: Tue, 22 Nov 2022 04:35:55 GMT
@@ -160,6 +178,9 @@ The request to `/get` succeeds now.
 
 ```shell
 kubectl exec "$(kubectl get pod -n curl -l app=curl -o jsonpath='{.items..metadata.name}')" -n curl -c curl -- curl -sI http://httpbin.httpbin:14001/get
+```
+
+```
 HTTP/1.1 200 OK
 server: pipy
 date: Tue, 22 Nov 2022 04:36:50 GMT
